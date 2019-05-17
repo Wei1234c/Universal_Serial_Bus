@@ -24,6 +24,11 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
+    def int_eq_hex(cls, i, hex_str, length = None, byteorder = BYTEORDER, signed = False):
+        return cls.int_to_hex(i, length, byteorder, signed) == hex_str.lower()
+
+
+    @classmethod
     def byte_array_to_int(cls, byte_array, byteorder = BYTEORDER, signed = False):
         return int.from_bytes(byte_array.tobytes(), byteorder = byteorder, signed = signed)
 
@@ -44,8 +49,31 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
+    def hex_reversed(cls, hex_string):
+        byte_array = cls.hex_to_byte_array(hex_string)
+        byte_array.reverse()
+        return cls.byte_array_to_hex(byte_array)
+
+
+    @classmethod
     def from_byte_array(cls, byte_array, parent_id = None):
         return cls(*(cls.get_descriptor_fields_values(byte_array)), parent_id = parent_id)
+
+
+    @property
+    def byte_array(self):
+        b_array = array('B', [])
+        for i in range(len(self.fields_sizes)):
+            b_array += self.hex_to_byte_array(getattr(self, self.fields_sizes[i][0]))
+        return b_array
+
+
+    @classmethod
+    def concate_byte_arrays(cls, dbos):
+        byte_array = array('B', [])
+        for dbo in dbos:
+            byte_array += dbo.byte_array
+        return byte_array
 
 
     @classmethod
