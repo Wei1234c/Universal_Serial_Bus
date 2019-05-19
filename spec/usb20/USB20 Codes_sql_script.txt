@@ -1,0 +1,325 @@
+------------------------------------------
+PRAGMA foreign_keys = off;
+BEGIN TRANSACTION;
+
+-- Table: class_code
+DROP TABLE IF EXISTS class_code;
+
+CREATE TABLE class_code (
+    id               INTEGER     PRIMARY KEY,
+    description      VARCHAR,
+    descriptor_usage VARCHAR,
+    base_code        VARCHAR (2) 
+);
+
+INSERT INTO class_code (
+                           id,
+                           description,
+                           descriptor_usage,
+                           base_code
+                       )
+                       VALUES (
+                           1,
+                           'Use class information in the Interface Descriptors',
+                           'Device',
+                           '00'
+                       ),
+					   (
+                           2,
+                           'Audio',
+                           'Interface',
+                           '01'
+                       ),
+					   (
+                           3,
+                           'Communications and CDC Control',
+                           'Both',
+                           '02'
+                       ),
+					   (
+                           4,
+                           'HID (Human Interface Device)',
+                           'Interface',
+                           '03'
+                       ),
+					   (
+                           5,
+                           'Physical',
+                           'Interface',
+                           '05'
+                       ),
+					   (
+                           6,
+                           'Image',
+                           'Interface',
+                           '06'
+                       ),
+					   (
+                           7,
+                           'Printer',
+                           'Interface',
+                           '07'
+                       ),
+					    (
+                           8,
+                           'Mass Storage',
+                           'Interface',
+                           '08'
+                       ),
+					    (
+                           9,
+                           'Hub',
+                           'Device',
+                           '09'
+                       ),
+					    (
+                           10,
+                           'CDC-Data',
+                           'Interface',
+                           '0a'
+                       ),
+					   (
+                           11,
+                           'Smart Card',
+                           'Interface',
+                           '0b'
+                       ),
+					   (
+                           12,
+                           'Content Security',
+                           'Interface',
+                           '0d'
+                       ),
+					    (
+                           13,
+                           'Video',
+                           'Interface',
+                           '0e'
+                       ),
+					    (
+                           14,
+                           'Personal Healthcare',
+                           'Interface',
+                           '0f'
+                       ),
+					    (
+                           15,
+                           'Audio/Video Devices',
+                           'Interface',
+                           '10'
+                       ),
+					   (
+                           16,
+                           'Billboard Device Class',
+                           'Device',
+                           '11'
+                       ),
+					    (
+                           17,
+                           'USB Type-C Bridge Class',
+                           'Interface',
+                           '12'
+                       ),
+					   (
+                           18,
+                           'Diagnostic Device',
+                           'Both',
+                           'dc'
+                       ),
+					   (
+                           19,
+                           'Wireless Controller',
+                           'Interface',
+                           'e0'
+                       ),
+					   (
+                           20,
+                           'Miscellaneous',
+                           'Both',
+                           'ef'
+                       ),
+					    (
+                           21,
+                           'Application Specific',
+                           'Interface',
+                           'fe'
+                       ),
+					    (
+                           22,
+                           'Vendor Specific',
+                           'Both',
+                           'ff'
+                       );
+
+
+COMMIT TRANSACTION;
+PRAGMA foreign_keys = on;
+
+
+
+------------------------------------------
+PRAGMA foreign_keys = off;
+BEGIN TRANSACTION;
+
+-- Table: descriptor_type
+DROP TABLE IF EXISTS descriptor_type;
+
+CREATE TABLE descriptor_type (
+    id              INTEGER     PRIMARY KEY,
+    dscrpt_type     VARCHAR,
+    bDescriptorType VARCHAR (2) 
+);
+
+INSERT INTO descriptor_type (
+                                id,
+                                dscrpt_type,
+                                bDescriptorType
+                            )
+                            VALUES (
+                                1,
+                                'device',
+                                '01'
+                            ),
+							(
+                                2,
+                                'configuration',
+                                '02'
+                            ),
+							(
+                                3,
+                                'string',
+                                '03'
+                            ),
+							(
+                                4,
+                                'interface',
+                                '04'
+                            ),
+							(
+                                5,
+                                'endpoint',
+                                '05'
+                            ),
+							(
+                                6,
+                                'device_qualifier',
+                                '06'
+                            ),
+							(
+                                7,
+                                'other_speed_configuration',
+                                '07'
+                            ),
+							(
+                                8,
+                                'interface_power',
+                                '08'
+                            ),
+							(
+                                9,
+                                'OTG',
+                                '09'
+                            ),
+							(
+                                10,
+                                'debug',
+                                '0a'
+                            ),
+							(
+                                11,
+                                'interface_association',
+                                '0b'
+                            );
+
+
+COMMIT TRANSACTION;
+PRAGMA foreign_keys = on;
+
+
+------------------------------------------
+PRAGMA foreign_keys = off;
+BEGIN TRANSACTION;
+
+-- Table: request_code
+DROP TABLE IF EXISTS request_code;
+
+CREATE TABLE request_code (
+    id           INTEGER     PRIMARY KEY,
+    request_type VARCHAR,
+    rqst_code    VARCHAR (2) 
+);
+
+INSERT INTO request_code (
+                             id,
+                             request_type,
+                             rqst_code
+                         )
+                         VALUES (
+                             1,
+                             'GET_STATUS',
+                             '00'
+                         ),
+						 (
+                             2,
+                             'CLEAR_FEATURE',
+                             '01'
+                         ),
+						 (
+                             3,
+                             'Reserved for future use',
+                             '02'
+                         ),
+						 (
+                             4,
+                             'SET_FEATURE',
+                             '03'
+                         ),
+						 (
+                             5,
+                             'Reserved for future use',
+                             '04'
+                         ),
+						 (
+                             6,
+                             'SET_ADDRESS',
+                             '05'
+                         ),
+						 (
+                             7,
+                             'GET_DESCRIPTOR',
+                             '06'
+                         ),
+						 (
+                             8,
+                             'SET_DESCRIPTOR',
+                             '07'
+                         ),
+						 (
+                             9,
+                             'GET_CONFIGURATION',
+                             '08'
+                         ),
+						 (
+                             10,
+                             'SET_CONFIGURATION',
+                             '09'
+                         ),
+						 (
+                             11,
+                             'GET_INTERFACE',
+                             '0a'
+                         ),
+						 (
+                             12,
+                             'SET_INTERFACE',
+                             '0b'
+                         ),
+						 (
+                             13,
+                             'SYNCH_FRAME',
+                             '0c'
+                         );
+
+
+COMMIT TRANSACTION;
+PRAGMA foreign_keys = on;

@@ -130,3 +130,4 @@ CREATE TABLE unicode_string_descriptor (
     bString VARCHAR(510));
 PRAGMA foreign_keys = on;
 
+

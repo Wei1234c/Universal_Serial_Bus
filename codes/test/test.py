@@ -1,6 +1,5 @@
 import universal_serial_bus
 
-
 idVendor = 0x1b3f
 idProduct = 0x2008
 

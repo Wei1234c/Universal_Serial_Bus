@@ -6,6 +6,7 @@ from .legacy import *
 
 
 
+
 class USBdevice(usb.core.Device):
     TYPE = CONTROL_REQUEST.TYPE.STANDARD
     DEFAULT_INTERFACE = (0, 0)
@@ -16,7 +17,7 @@ class USBdevice(usb.core.Device):
         if address is not None:
             kwargs['address'] = address
         dev = usb.core.find(**kwargs)
-        if not dev:
+        if not dev :
             raise ValueError("Device not found ({:x}:{:x} address:{})".format(vid, pid, address or ''))
 
         super().__init__(dev._ctx.dev, dev._ctx.backend)
