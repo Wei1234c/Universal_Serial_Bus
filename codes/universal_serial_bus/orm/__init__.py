@@ -24,8 +24,22 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
-    def int_eq_hex(cls, i, hex_str, length = None, byteorder = BYTEORDER, signed = False):
-        return cls.int_to_hex(i, length, byteorder, signed) == hex_str.lower()
+    def bcd_to_hex(cls, bcd):
+        major = '{:0>2}'.format(int(bcd // 1))
+        minor = '{:0<2}'.format(int((bcd % 1) * 100))
+        return minor + major
+
+
+    @classmethod
+    def hex_to_bcd(cls, hex_string):
+        major = int(hex_string[2:4])
+        minor = int(hex_string[0:2]) / 100
+        return major + minor
+
+
+    @classmethod
+    def int_eq_hex(cls, i, hex_string, length = None, byteorder = BYTEORDER, signed = False):
+        return cls.int_to_hex(i, length, byteorder, signed) == hex_string.lower()
 
 
     @classmethod
@@ -44,6 +58,11 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
+    def bytes_to_hex(cls, value_bytes):
+        return value_bytes.hex()
+
+
+    @classmethod
     def hex_to_byte_array(cls, hex_string):
         return array('B', bytes.fromhex(hex_string))
 
@@ -58,6 +77,13 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
     @classmethod
     def from_byte_array(cls, byte_array, parent_id = None):
         return cls(*(cls.get_descriptor_fields_values(byte_array)), parent_id = parent_id)
+
+
+    @classmethod
+    def from_zeros(cls, parent_id = None):
+        fields_values = [cls.byte_array_to_hex(array('B', [0] * cls.fields_sizes[i][1]))
+                         for i in range(len(cls.fields_sizes))]
+        return cls(*(fields_values), parent_id = parent_id)
 
 
     @property
@@ -97,6 +123,7 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
         while start < total_len:
             seg_len = descriptor[start]
+            assert seg_len > 0, 'Descriptor length is 0.'
             yield descriptor[start: start + seg_len]
             start = start + seg_len
 
