@@ -25,21 +25,17 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
     @classmethod
     def bcd_to_hex(cls, bcd):
-        major = '{:0>2}'.format(int(bcd // 1))
-        minor = '{:0<2}'.format(int((bcd % 1) * 100))
-        return minor + major
+        return ''.join([str(int(bcd * d))[-1] for d in (10, 100, 1 / 10, 1)])
 
 
     @classmethod
     def hex_to_bcd(cls, hex_string):
-        major = int(hex_string[2:4])
-        minor = int(hex_string[0:2]) / 100
-        return major + minor
+        return int(''.join(hex_string[i] for i in (2, 3, 0, 1))) / 100
 
 
     @classmethod
     def int_eq_hex(cls, i, hex_string, length = None, byteorder = BYTEORDER, signed = False):
-        return cls.int_to_hex(i, length, byteorder, signed) == hex_string.lower()
+        return cls.int_to_hex(i, length, byteorder, signed).lower() == hex_string.lower()
 
 
     @classmethod
@@ -114,18 +110,6 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
             start += size
 
         return fields_values
-
-
-    @classmethod
-    def split_descriptor(cls, descriptor):
-        total_len = len(descriptor)
-        start = 0
-
-        while start < total_len:
-            seg_len = descriptor[start]
-            assert seg_len > 0, 'Descriptor length is 0.'
-            yield descriptor[start: start + seg_len]
-            start = start + seg_len
 
 
 

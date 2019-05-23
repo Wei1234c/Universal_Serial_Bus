@@ -104,6 +104,7 @@ class CONTROL_REQUEST:
     class RECIPIENT:
         DEVICE = 0x00
         INTERFACE = 0x01
+        CLASS = 0x01
         ENDPOINT = 0x02
         OTHER = 0x03
 
