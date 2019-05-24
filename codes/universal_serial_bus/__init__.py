@@ -195,7 +195,3 @@ class Endpoint(usb.core.Endpoint):
     def type_direction(self):
         return self._str()
 
-
-
-class Descriptor:
-    pass
