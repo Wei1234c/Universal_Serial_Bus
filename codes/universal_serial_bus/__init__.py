@@ -60,6 +60,11 @@ class USBdevice(usb.core.Device):
 
 
     @property
+    def manufacturer_product(self):
+        return '{} {} ( {} {} )'.format(self.manufacturer, self.product, hex(self.idVendor), hex(self.idProduct))
+
+
+    @property
     def is_open(self):
         return (self._ctx.handle is not None) if hasattr(self, '_ctx') else False
 
@@ -132,6 +137,14 @@ class USBdevice(usb.core.Device):
         return [device_descriptor] + self.descriptors_from_config
 
 
+    def dump_descriptors(self, fn = None):
+        fn = self.manufacturer_product + ' descriptors.json' if fn is None else fn
+        import json
+
+        with open(fn, 'wt') as f:
+            json.dump([e.tolist() for e in self.descriptors], f)
+
+
     @classmethod
     def split_descriptor(cls, descriptor):
         total_len = len(descriptor)
@@ -194,4 +207,3 @@ class Endpoint(usb.core.Endpoint):
     @property
     def type_direction(self):
         return self._str()
-
