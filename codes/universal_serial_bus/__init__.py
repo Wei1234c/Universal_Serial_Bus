@@ -65,6 +65,11 @@ class USBdevice(usb.core.Device):
 
 
     @property
+    def usb_version(self):
+        return OrmClassBase.word_to_bcd(self.bcdUSB)
+
+
+    @property
     def is_open(self):
         return (self._ctx.handle is not None) if hasattr(self, '_ctx') else False
 
@@ -159,11 +164,16 @@ class USBdevice(usb.core.Device):
 
     @property
     def descriptors_dbos(self):
+        return self.get_descriptors_dbos(self.descriptors)
+
+
+    @classmethod
+    def get_descriptors_dbos(cls, descriptors):
         dbos = []
         intf_type = None
 
-        for descriptor in self.descriptors:
-            _class, intf_type = self._categorize(descriptor, intf_type)
+        for descriptor in descriptors:
+            _class, intf_type = cls._categorize(descriptor, intf_type)
 
             if _class is not None:
                 dbos.append(_class.from_byte_array(descriptor))

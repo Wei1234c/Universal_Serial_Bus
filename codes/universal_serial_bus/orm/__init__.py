@@ -34,6 +34,18 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
+    def word_to_bcd(cls, word, byteorder = 'big'):
+        return int(word.to_bytes(2, byteorder = byteorder).hex()) / 100
+
+
+    @classmethod
+    def byte_array_to_bcd(cls, byte_array, byteorder = 'little'):
+        if byteorder != 'little':
+            byte_array.reverse()
+        return OrmClassBase.hex_to_bcd(byte_array.tobytes().hex())
+
+
+    @classmethod
     def int_eq_hex(cls, i, hex_string, length = None, byteorder = BYTEORDER, signed = False):
         return cls.int_to_hex(i, length, byteorder, signed).lower() == hex_string.lower()
 
