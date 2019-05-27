@@ -1,6 +1,8 @@
+import usb
 import usb._interop
 import usb._lookup
 
+from orm.tools import AttrDict
 from . import _lookup
 from .legacy import *
 from .orm import OrmClassBase
@@ -44,7 +46,7 @@ class USBdevice(usb.core.Device):
 
         super().__init__(dev._ctx.dev, dev._ctx.backend)
         self.set_configuration(configuration)
-        self.endpoints = self.get_endpoints()
+        self.set_endpoints()
 
 
     def __enter__(self):
@@ -70,6 +72,11 @@ class USBdevice(usb.core.Device):
 
 
     @property
+    def attributes(self):
+        return self.__dict__
+
+
+    @property
     def is_open(self):
         return (self._ctx.handle is not None) if hasattr(self, '_ctx') else False
 
@@ -80,9 +87,13 @@ class USBdevice(usb.core.Device):
             self.reset()
 
 
-    def get_endpoints(self):
+    def set_endpoints(self):
         config = self.get_active_configuration()
-        return {ep.bEndpointAddress: Endpoint(ep) for interface in config for ep in interface}
+        self.endpoints = {ep.bEndpointAddress: Endpoint(ep, interface) for interface in config for ep in interface}
+        pipes = {}
+        for ep in self.endpoints.values():
+            pipes.setdefault(ep.type, {}).setdefault(ep.direction, []).append(ep)
+        self.pipes = AttrDict(pipes)
 
 
     def control_read(self, bRequest, wValue = 0, wIndex = 0, wLength = 0x400, timeout = None, type = None,
@@ -151,6 +162,16 @@ class USBdevice(usb.core.Device):
 
 
     @classmethod
+    def load_descriptors(cls, fn = None):
+        fn = ' descriptors.json' if fn is None else fn
+        import json
+        from array import array
+
+        with open(fn, 'rt') as f:
+            return [array('B', e) for e in json.load(f)]
+
+
+    @classmethod
     def split_descriptor(cls, descriptor):
         total_len = len(descriptor)
         start = 0
@@ -165,6 +186,12 @@ class USBdevice(usb.core.Device):
     @property
     def descriptors_dbos(self):
         return self.get_descriptors_dbos(self.descriptors)
+
+
+    @classmethod
+    def load_descriptors_dbos(cls, fn = None):
+        descriptors = cls.load_descriptors(fn)
+        return cls.get_descriptors_dbos(descriptors)
 
 
     @classmethod
@@ -194,13 +221,21 @@ class USBdevice(usb.core.Device):
 
 class Endpoint(usb.core.Endpoint):
 
-    def __init__(self, endpoint):
+    def __init__(self, endpoint, interface):
         self.device = endpoint.device
+        self.interface = interface
         self.index = endpoint.index
 
-        usb.core._set_attr(endpoint, self, (
-            'bLength', 'bDescriptorType', 'bEndpointAddress', 'bmAttributes', 'wMaxPacketSize', 'bInterval', 'bRefresh',
-            'bSynchAddress', 'extra_descriptors'))
+        usb.core._set_attr(endpoint, self, ('bLength', 'bDescriptorType', 'bEndpointAddress',
+                                            'bmAttributes', 'wMaxPacketSize', 'bInterval', 'bRefresh',
+                                            'bSynchAddress', 'extra_descriptors'))
+
+
+    def set_interface(self):
+        try:
+            self.device.set_interface_altsetting(self.interface)
+        except usb.core.USBError as e:
+            print(e)
 
 
     @property
