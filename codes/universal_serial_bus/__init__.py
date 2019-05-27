@@ -218,6 +218,15 @@ class USBdevice(usb.core.Device):
         return self.descriptors_dbos[1]
 
 
+    @classmethod
+    def translate_hexed_string(cls, string_in_hex):
+        for codec in ["utf-8", "big5"]:
+            try:
+                return string_in_hex.encode('cp1252').decode(codec)
+            except UnicodeDecodeError:
+                pass
+
+
 
 class Endpoint(usb.core.Endpoint):
 
