@@ -92,7 +92,7 @@ class USBdevice(usb.core.Device):
         self.endpoints = {ep.bEndpointAddress: Endpoint(ep, interface) for interface in config for ep in interface}
         pipes = {}
         for ep in self.endpoints.values():
-            pipes.setdefault(ep.type, {}).setdefault(ep.direction, []).append(ep)
+            pipes.setdefault(ep.transfer_type, {}).setdefault(ep.direction, []).append(ep)
         self.pipes = AttrDict(pipes)
 
 
@@ -218,6 +218,18 @@ class USBdevice(usb.core.Device):
         return self.descriptors_dbos[1]
 
 
+    @property
+    def interface_descriptor_dbos(self):
+        return [descriptors_dbo for descriptors_dbo in self.descriptors_dbos
+                if descriptors_dbo.bDescriptorType == '04']
+
+
+    @property
+    def endpoint_descriptor_dbos(self):
+        return [descriptors_dbo for descriptors_dbo in self.descriptors_dbos
+                if descriptors_dbo.bDescriptorType == '05']
+
+
     @classmethod
     def translate_hexed_string(cls, string_in_hex):
         for codec in ["utf-8", "big5"]:
@@ -254,8 +266,18 @@ class Endpoint(usb.core.Endpoint):
 
 
     @property
-    def type(self):
-        return usb._lookup.ep_attributes[(self.bmAttributes & ENDPOINT.TYPE.MASK)]
+    def transfer_type(self):
+        return _lookup.endpoint_transfer_types[(self.bmAttributes & ENDPOINT.TRANSFER_TYPE.MASK)]
+
+
+    @property
+    def synchronization_type(self):
+        return _lookup.endpoint_synchronization_types[(self.bmAttributes & ENDPOINT.SYNCHRONIZATION_TYPE.MASK)]
+
+
+    @property
+    def usage_type(self):
+        return _lookup.endpoint_usage_types[(self.bmAttributes & ENDPOINT.USAGE_TYPE.MASK)]
 
 
     @property

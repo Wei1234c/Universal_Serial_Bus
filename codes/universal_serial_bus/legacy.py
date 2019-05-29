@@ -59,7 +59,13 @@ class ENDPOINT:
     ADDRESS_MASK = 0x0F
 
 
-    class TYPE:
+    class DIRECTION:
+        MASK = 0x80
+        IN = 0x80
+        OUT = 0x00
+
+
+    class TRANSFER_TYPE:
         MASK = 0x03
         CONTROL = 0x00
         ISOCHRONOUS = 0x01
@@ -67,10 +73,20 @@ class ENDPOINT:
         INTERRUPT = 0x03
 
 
-    class DIRECTION:
-        MASK = 0x80
-        IN = 0x80
-        OUT = 0x00
+    class SYNCHRONIZATION_TYPE:
+        MASK = 0x0C
+        NO_SYNCHRONIZATION = 0x00
+        ASYNCHRONOUS = 0x01
+        ADAPTIVE = 0x02
+        SYNCHRONOUS = 0x03
+
+
+    class USAGE_TYPE:
+        MASK = 0x30
+        DATA_ENDPOINT = 0x00
+        FEEDBACK_ENDPOINT = 0x01
+        IMPLICIT_FEEDBACK_DATA_ENDPOINT = 0x02
+        RESERVED = 0x03
 
 
 
