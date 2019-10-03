@@ -73,7 +73,7 @@ class USBdevice(usb.core.Device):
 
     @property
     def attributes(self):
-        return self.__dict__
+        return {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
 
 
     @property
@@ -153,21 +153,21 @@ class USBdevice(usb.core.Device):
         return [device_descriptor] + self.descriptors_from_config
 
 
-    def dump_descriptors(self, fn = None):
-        fn = self.manufacturer_product + ' descriptors.json' if fn is None else fn
+    def dump_descriptors(self, file_name = None):
+        file_name = self.manufacturer_product + ' descriptors.json' if file_name is None else file_name
         import json
 
-        with open(fn, 'wt') as f:
+        with open(file_name, 'wt') as f:
             json.dump([e.tolist() for e in self.descriptors], f)
 
 
     @classmethod
-    def load_descriptors(cls, fn = None):
-        fn = ' descriptors.json' if fn is None else fn
+    def load_descriptors(cls, file_name = None):
+        file_name = 'descriptors.json' if file_name is None else file_name
         import json
         from array import array
 
-        with open(fn, 'rt') as f:
+        with open(file_name, 'rt') as f:
             return [array('B', e) for e in json.load(f)]
 
 
@@ -188,9 +188,14 @@ class USBdevice(usb.core.Device):
         return self.get_descriptors_dbos(self.descriptors)
 
 
+    @property
+    def descriptors_dbos_and_attributes(self):
+        return [{dbo.__class__.__name__: dbo.attributes} for dbo in self.descriptors_dbos]
+
+
     @classmethod
-    def load_descriptors_dbos(cls, fn = None):
-        descriptors = cls.load_descriptors(fn)
+    def load_descriptors_dbos(cls, file_name = None):
+        descriptors = cls.load_descriptors(file_name)
         return cls.get_descriptors_dbos(descriptors)
 
 
@@ -214,8 +219,9 @@ class USBdevice(usb.core.Device):
 
 
     @property
-    def configuration_descriptor_dbo(self):
-        return self.descriptors_dbos[1]
+    def configuration_descriptor_dbos(self):
+        return [descriptors_dbo for descriptors_dbo in self.descriptors_dbos
+                if descriptors_dbo.bDescriptorType == '02']
 
 
     @property

@@ -89,8 +89,7 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
     @classmethod
     def from_zeros(cls, parent_id = None):
-        fields_values = [cls.byte_array_to_hex(array('B', [0] * cls.fields_sizes[i][1]))
-                         for i in range(len(cls.fields_sizes))]
+        fields_values = [cls.byte_array_to_hex(array('B', [0] * field_size[1])) for field_size in cls.fields_sizes]
         return cls(*(fields_values), parent_id = parent_id)
 
 
