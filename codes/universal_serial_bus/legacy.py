@@ -39,6 +39,8 @@ class DESCRIPTOR:
         STRING = 0x03
         INTERFACE = 0x04
         ENDPOINT = 0x05
+        QUALIFIER = 0x06
+        INTERFACE_ASSOCIATION = 0x0B
         HID = 0x21
         REPORT = 0x22
         PHYSICAL = 0x23
@@ -47,8 +49,10 @@ class DESCRIPTOR:
 
     class SIZE:
         DEVICE = 18
+        QUALIFIER = 10
         CONFIG = 9
         INTERFACE = 9
+        INTERFACE_ASSOCIATION = 8
         ENDPOINT = 7
         ENDPOINT_AUDIO = 9
         HUB_NONVAR = 7
@@ -91,6 +95,7 @@ class ENDPOINT:
 
 
 class CONTROL_REQUEST:
+    MASK = 0x0F
     GET_STATUS = 0x00
     CLEAR_FEATURE = 0x01
     SET_FEATURE = 0x03
@@ -111,6 +116,7 @@ class CONTROL_REQUEST:
 
 
     class TYPE:
+        MASK = 0x60
         STANDARD = 0x00
         CLASS = 0x20
         VENDOR = 0x40
@@ -118,6 +124,7 @@ class CONTROL_REQUEST:
 
 
     class RECIPIENT:
+        MASK = 0x03
         DEVICE = 0x00
         INTERFACE = 0x01
         ENDPOINT = 0x02
@@ -126,6 +133,7 @@ class CONTROL_REQUEST:
 
 
 class SPEED_TYPE:
+    MASK = 0x07
     LOW = 0x01
     FULL = 0x02
     HIGH = 0x03

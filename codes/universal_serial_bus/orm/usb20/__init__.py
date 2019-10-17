@@ -8,6 +8,8 @@ int_to_hex = OrmClassBase.int_to_hex
 
 
 class USBdevice(universal_serial_bus.USBdevice):
+    __version__ = '2.0'
+
 
     @classmethod
     def _categorize(cls, descriptor, intf_type = None):

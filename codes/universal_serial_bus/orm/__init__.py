@@ -1,7 +1,7 @@
-import math
 from array import array
 
 import orm.alchemy
+from orm.tools import AttrDict
 
 
 
@@ -12,9 +12,36 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
     @classmethod
     def int_to_byte_array(cls, value, length = None, byteorder = BYTEORDER, signed = False):
-        length = math.ceil(math.log2(value + 1) / 8) if length is None else length
-        length = max(length, 1)
-        return array('B', value.to_bytes(length, byteorder, signed = signed))
+        max_int_bytes = 8  # sys.maxsize = 9223372036854775807 < 2**(8*8)
+        lengths = (1, max_int_bytes + 1) if length is None else (length, length + 1)
+
+        for l in range(*lengths):
+            try:
+                return array('B', value.to_bytes(l, byteorder, signed = signed))
+            except OverflowError as e:
+                if length is not None:
+                    raise e
+
+
+    @classmethod
+    def float_to_byte_array(cls, value, int_bytes = 1, decimal_bytes = 1, byteorder = BYTEORDER, signed = False):
+        integer = cls.int_to_byte_array(int(value), length = int_bytes, byteorder = byteorder, signed = signed)
+        decimal = int((value - int(value)) * 2 ** (decimal_bytes * 8))
+        decimal = cls.int_to_byte_array(abs(decimal), length = decimal_bytes, byteorder = byteorder, signed = False)
+        return decimal + integer if byteorder == cls.BYTEORDER else integer + decimal
+
+
+    @classmethod
+    def byte_array_to_float(cls, byte_array, int_bytes = 1, byteorder = BYTEORDER, signed = False):
+        if byteorder == cls.BYTEORDER:
+            integer, decimal = byte_array[int_bytes:], byte_array[:int_bytes]
+        else:
+            integer, decimal = byte_array[:int_bytes], byte_array[int_bytes:]
+        integer = cls.byte_array_to_int(integer, byteorder = byteorder, signed = signed)
+        decimal = cls.byte_array_to_int(decimal, byteorder = byteorder, signed = False)
+        decimal_bytes = len(byte_array) - int_bytes
+        decimal /= 2 ** (8 * decimal_bytes)
+        return integer + decimal
 
 
     @classmethod
@@ -71,6 +98,12 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
+    def string_to_hex_array(cls, string, encoding = 'utf-16-le'):
+        bs = string.encode(encoding = encoding)
+        return [hex(b) for b in bs]
+
+
+    @classmethod
     def hex_to_byte_array(cls, hex_string):
         return array('B', bytes.fromhex(hex_string))
 
@@ -101,12 +134,27 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
         return b_array
 
 
+    @property
+    def length(self):
+        return len(self.byte_array)
+
+
+    @classmethod
+    def size(cls):
+        return sum([field_size[1] for field_size in cls.fields_sizes])
+
+
     @classmethod
     def concate_byte_arrays(cls, dbos):
         byte_array = array('B', [])
         for dbo in dbos:
             byte_array += dbo.byte_array
         return byte_array
+
+
+    @classmethod
+    def total_length(cls, dbos):
+        return len(cls.concate_byte_arrays(dbos))
 
 
     @classmethod
@@ -121,6 +169,12 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
             start += size
 
         return fields_values
+
+
+    @classmethod
+    def gen_constants(cls, key_field, value_field, session, as_hex = True):
+        d = cls.to_dict([key_field], [value_field], session)
+        return AttrDict({k[0]: int('0x' + v[0], 16) if as_hex else int(v[0]) for k, v in d.items()})
 
 
 

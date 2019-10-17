@@ -1,3 +1,5 @@
+from sys import platform
+
 import usb
 import usb._interop
 import usb._lookup
@@ -6,6 +8,11 @@ from orm.tools import AttrDict
 from . import _lookup
 from .legacy import *
 from .orm import OrmClassBase
+
+
+IS_LINUX = platform == "linux" or platform == "linux2"
+IS_MAC = platform == "darwin"
+IS_WINDOWS = platform == "win32"
 
 
 
@@ -45,8 +52,17 @@ class USBdevice(usb.core.Device):
             raise ValueError("Device not found ({:x}:{:x} address:{})".format(vid, pid, address or ''))
 
         super().__init__(dev._ctx.dev, dev._ctx.backend)
+        if IS_LINUX:
+            self._detach_interfaces(configuration)
         self.set_configuration(configuration)
         self.set_endpoints()
+
+
+    def _detach_interfaces(self, configuration = None):
+        configuration = 0 if configuration is None else configuration
+        for i in range(len(self[configuration].interfaces())):
+            if self.is_kernel_driver_active(i):
+                self.detach_kernel_driver(i)
 
 
     def __enter__(self):
@@ -289,3 +305,12 @@ class Endpoint(usb.core.Endpoint):
     @property
     def type_direction(self):
         return self._str()
+
+
+    @classmethod
+    def gen_bmAttributes(cls, transfer_type = ENDPOINT.TRANSFER_TYPE.BULK,
+                         synchronization_type = ENDPOINT.SYNCHRONIZATION_TYPE.NO_SYNCHRONIZATION,
+                         usage_type = ENDPOINT.USAGE_TYPE.DATA_ENDPOINT):
+        return (transfer_type & ENDPOINT.TRANSFER_TYPE.MASK) | (
+                (synchronization_type << 2) & ENDPOINT.SYNCHRONIZATION_TYPE.MASK) | (
+                       (usage_type << 4) & ENDPOINT.USAGE_TYPE.MASK)
