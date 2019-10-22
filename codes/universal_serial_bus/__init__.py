@@ -3,6 +3,7 @@ from sys import platform
 import usb
 import usb._interop
 import usb._lookup
+from array import array
 
 from orm.tools import AttrDict
 from . import _lookup
@@ -167,6 +168,14 @@ class USBdevice(usb.core.Device):
     def descriptors(self):
         device_descriptor = self.get_descriptor(DESCRIPTOR.SIZE.DEVICE, DESCRIPTOR.TYPE.DEVICE, 0)
         return [device_descriptor] + self.descriptors_from_config
+
+
+    @property
+    def descriptors_byte_array(self):
+        byte_array = array('B', [])
+        for descriptor in self.descriptors:
+            byte_array += descriptor
+        return byte_array
 
 
     def dump_descriptors(self, file_name = None):

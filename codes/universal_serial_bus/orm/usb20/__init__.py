@@ -3,7 +3,6 @@ from .descriptors import *
 
 
 int_eq_hex = OrmClassBase.int_eq_hex
-int_to_hex = OrmClassBase.int_to_hex
 
 
 

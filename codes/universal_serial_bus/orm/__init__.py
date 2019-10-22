@@ -6,8 +6,28 @@ from orm.tools import AttrDict
 
 
 class OrmClassBase(orm.alchemy.OrmClassBase):
-    fields_sizes = (('bLength', 1), ('bDescriptorType', 1))
+    fields_sizes = [('bLength', 1), ('bDescriptorType', 1)]
     BYTEORDER = 'little'
+
+
+    def delattr(self, attr_name):
+        for i in range(len(self.fields_sizes)):
+            if self.fields_sizes[i][0] == attr_name:
+                self.fields_sizes.pop(i)
+                delattr(self, attr_name)
+                break
+
+
+    def setattr(self, attr_name, attr_value, idx = None):
+        self.delattr(attr_name)
+
+        attr_names = [field_size[0] for field_size in self.fields_sizes]
+        if attr_name not in attr_names:
+            if idx is None:
+                self.fields_sizes.append((attr_name, len(attr_value)))
+            else:
+                self.fields_sizes.insert(idx, (attr_name, len(attr_value)))
+        setattr(self, attr_name, attr_value)
 
 
     @classmethod
@@ -90,6 +110,11 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
     @classmethod
     def byte_array_to_hex(cls, byte_array):
         return byte_array.tobytes().hex()
+
+
+    @classmethod
+    def byte_array_to_hex_array(cls, byte_array):
+        return [hex(b) for b in byte_array]
 
 
     @classmethod
