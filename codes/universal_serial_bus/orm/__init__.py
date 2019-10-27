@@ -10,24 +10,50 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
     BYTEORDER = 'little'
 
 
+    @property
+    def attributes(self):
+        return {field_size[0]: getattr(self, field_size[0]) for field_size in self.fields_sizes}
+
+
+    def find_field_size(self, field_name):
+        for idx in range(len(self.fields_sizes)):
+            if self.fields_sizes[idx][0] == field_name:
+                return idx, self.fields_sizes[idx]
+        return None, None
+
+
+    def get_size_of_field(self, field_name):
+        idx, field_size = self.find_field_size(field_name)
+        if field_size is not None:
+            return field_size[1]
+
+
     def delattr(self, attr_name):
-        for i in range(len(self.fields_sizes)):
-            if self.fields_sizes[i][0] == attr_name:
-                self.fields_sizes.pop(i)
-                delattr(self, attr_name)
-                break
+        idx, field_size = self.find_field_size(attr_name)
+        if idx is not None:
+            self.fields_sizes.pop(idx)
+            delattr(self, attr_name)
 
 
-    def setattr(self, attr_name, attr_value, idx = None):
+    def setattr(self, attr_name, attr_value, size = None, idx = None):
         self.delattr(attr_name)
-
+        size = len(self.hex_to_byte_array(attr_value)) if size is None else size
         attr_names = [field_size[0] for field_size in self.fields_sizes]
+
         if attr_name not in attr_names:
             if idx is None:
-                self.fields_sizes.append((attr_name, len(attr_value)))
+                self.fields_sizes.append((attr_name, size))
             else:
-                self.fields_sizes.insert(idx, (attr_name, len(attr_value)))
+                self.fields_sizes.insert(idx, (attr_name, size))
         setattr(self, attr_name, attr_value)
+
+
+    def set_attr_hex_value_from_int(self, attr_name, value, byteorder = BYTEORDER, signed = False):
+        setattr(self, attr_name,
+                self.int_to_hex(value = value,
+                                length = self.get_size_of_field(attr_name),
+                                byteorder = byteorder,
+                                signed = signed))
 
 
     @classmethod
@@ -123,9 +149,10 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
 
     @classmethod
-    def string_to_hex_array(cls, string, encoding = 'utf-16-le'):
+    def string_to_hex_array(cls, string, hex_prefix = True, encoding = 'utf-16-le'):
+        prefix = '0x' if hex_prefix else ''
         bs = string.encode(encoding = encoding)
-        return [hex(b) for b in bs]
+        return [prefix + '{:02X}'.format(b) for b in bs]
 
 
     @classmethod

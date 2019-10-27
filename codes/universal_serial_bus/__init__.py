@@ -1,9 +1,10 @@
+import math
+from array import array
 from sys import platform
 
 import usb
 import usb._interop
 import usb._lookup
-from array import array
 
 from orm.tools import AttrDict
 from . import _lookup
@@ -80,7 +81,9 @@ class USBdevice(usb.core.Device):
 
     @property
     def manufacturer_product(self):
-        return '{} {} ( {} {} )'.format(self.manufacturer, self.product, hex(self.idVendor), hex(self.idProduct))
+        string = '{} {} ( {} {} )'.format(self.manufacturer, self.product, hex(self.idVendor), hex(self.idProduct))
+        string = string.replace('\x00', '')
+        return string
 
 
     @property
@@ -268,6 +271,22 @@ class USBdevice(usb.core.Device):
                 return string_in_hex.encode('cp1252').decode(codec)
             except UnicodeDecodeError:
                 pass
+
+
+    @classmethod
+    def get_wMaxPacketSize(cls, bytes_per_frame, max_packet_bytes = 2 ** 10, max_packets = 3):
+        wMaxPacketSize = bytes_per_frame
+
+        max_frame_bytes = max_packet_bytes * max_packets
+        assert bytes_per_frame <= max_frame_bytes, \
+            'Requires {} bytes per frame, more than max {} bytes.'.format(bytes_per_frame, max_frame_bytes)
+
+        if bytes_per_frame > max_packet_bytes:
+            packets = math.ceil(bytes_per_frame / max_packet_bytes)
+            average_packet_size = math.ceil(bytes_per_frame / packets)
+            wMaxPacketSize = average_packet_size | (packets - 1) << 11
+
+        return wMaxPacketSize
 
 
 
