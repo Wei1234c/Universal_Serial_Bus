@@ -79,13 +79,15 @@ class OrmClassBase(orm.alchemy.OrmClassBase):
 
     @classmethod
     def byte_array_to_float(cls, byte_array, int_bytes = 1, byteorder = BYTEORDER, signed = False):
+        decimal_bytes = len(byte_array) - int_bytes
+
         if byteorder == cls.BYTEORDER:
-            integer, decimal = byte_array[int_bytes:], byte_array[:int_bytes]
+            integer, decimal = byte_array[decimal_bytes:], byte_array[:decimal_bytes]
         else:
             integer, decimal = byte_array[:int_bytes], byte_array[int_bytes:]
+
         integer = cls.byte_array_to_int(integer, byteorder = byteorder, signed = signed)
         decimal = cls.byte_array_to_int(decimal, byteorder = byteorder, signed = False)
-        decimal_bytes = len(byte_array) - int_bytes
         decimal /= 2 ** (8 * decimal_bytes)
         return integer + decimal
 
