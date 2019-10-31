@@ -1,10 +1,10 @@
-import math
-from array import array
 from sys import platform
 
+import math
 import usb
 import usb._interop
 import usb._lookup
+from array import array
 
 from orm.tools import AttrDict
 from . import _lookup
