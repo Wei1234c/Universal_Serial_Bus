@@ -1,10 +1,10 @@
+import math
+from array import array
 from sys import platform
 
-import math
 import usb
 import usb._interop
 import usb._lookup
-from array import array
 
 from orm.tools import AttrDict
 from . import _lookup
@@ -160,6 +160,11 @@ class USBdevice(usb.core.Device):
 
 
     @property
+    def device_descriptor(self):
+        return self.get_descriptor(DESCRIPTOR.SIZE.DEVICE, DESCRIPTOR.TYPE.DEVICE, 0)
+
+
+    @property
     def descriptors_from_config(self):
         descriptor = self.get_descriptor(DESCRIPTOR.SIZE.CONFIG, DESCRIPTOR.TYPE.CONFIG, 0)
         descriptor = self.get_descriptor(OrmClassBase.byte_array_to_int(descriptor[2:4]),
@@ -169,8 +174,7 @@ class USBdevice(usb.core.Device):
 
     @property
     def descriptors(self):
-        device_descriptor = self.get_descriptor(DESCRIPTOR.SIZE.DEVICE, DESCRIPTOR.TYPE.DEVICE, 0)
-        return [device_descriptor] + self.descriptors_from_config
+        return [self.device_descriptor] + self.descriptors_from_config
 
 
     @property
@@ -219,6 +223,19 @@ class USBdevice(usb.core.Device):
     @property
     def descriptors_dbos_and_attributes(self):
         return [{dbo.__class__.__name__: dbo.attributes} for dbo in self.descriptors_dbos]
+
+
+    @property
+    def descriptors_dbos_enum(self):
+        dbos = self.descriptors_dbos
+        return [(i, dbos[i].__class__.__name__) for i in range(len(dbos))]
+
+
+    def print_descriptors_dbos(self):
+        for dbo in self.descriptors_dbos:
+            print('{}'.format(dbo.__class__.__name__))
+            for k, v in dbo.attributes.items():
+                print('\t{}: 0x{}'.format(k, v))
 
 
     @classmethod
