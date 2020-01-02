@@ -104,7 +104,7 @@ class USBdevice(usb.core.Device):
     def close(self):
         if self.is_open:
             usb.util.dispose_resources(self)
-            self.reset()
+            # self.reset()
 
 
     def set_endpoints(self):
