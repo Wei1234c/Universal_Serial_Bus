@@ -18,7 +18,7 @@ IS_WINDOWS = platform == "win32"
 
 
 
-def find_all_devices_by_class(class_code):
+def find_all_devices_by_class(class_code, *args, **kwargs):
     def find_class(class_code):
         def scan(device):
             if device.bDeviceClass == class_code:
@@ -34,7 +34,7 @@ def find_all_devices_by_class(class_code):
         return scan
 
 
-    devices = list(usb.core.find(find_all = True, custom_match = find_class(class_code)))
+    devices = list(usb.core.find(find_all = True, custom_match = find_class(class_code), *args, **kwargs))
     devices_ids = sorted(set([(device.idVendor, device.idProduct) for device in devices]))
     return devices, devices_ids
 
@@ -45,15 +45,24 @@ class USBdevice(usb.core.Device):
     DEFAULT_INTERFACE = (0, 0)
 
 
-    def __init__(self, vid, pid, address = None, configuration = None):
-        kwargs = dict(idVendor = vid, idProduct = pid)
+    def __init__(self, vid, pid, address = None, configuration = None, use_libusb0 = False, **kwargs):
+        kwargs = kwargs or {}
+        kwargs.update(dict(idVendor = vid, idProduct = pid))
+
         if address is not None:
             kwargs['address'] = address
+
+        if use_libusb0:
+            import usb.backend.libusb0 as libusb
+
+            kwargs['backend'] = libusb.get_backend()
+
         dev = usb.core.find(**kwargs)
         if not dev:
             raise ValueError("Device not found ({:x}:{:x} address:{})".format(vid, pid, address or ''))
 
         super().__init__(dev._ctx.dev, dev._ctx.backend)
+
         if IS_LINUX:
             self._detach_interfaces(configuration)
         self.set_configuration(configuration)
@@ -102,9 +111,10 @@ class USBdevice(usb.core.Device):
 
 
     def close(self):
-        if self.is_open:
-            usb.util.dispose_resources(self)
-            # self.reset()
+        # if self.is_open:
+        #     usb.util.dispose_resources(self)
+        #     # self.reset()
+        self.finalize()
 
 
     def set_endpoints(self):
